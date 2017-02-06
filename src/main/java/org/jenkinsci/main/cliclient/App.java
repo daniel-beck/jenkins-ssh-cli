@@ -7,6 +7,9 @@ import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.channel.ClientChannel;
 import org.apache.sshd.client.channel.ClientChannelEvent;
 import org.apache.sshd.client.future.ConnectFuture;
+import org.apache.sshd.client.keyverifier.DefaultKnownHostsServerKeyVerifier;
+import org.apache.sshd.client.keyverifier.KnownHostsServerKeyVerifier;
+import org.apache.sshd.client.keyverifier.ServerKeyVerifier;
 import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.future.WaitableFuture;
 import org.apache.sshd.common.util.io.NoCloseInputStream;
@@ -18,17 +21,17 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class App {
@@ -142,6 +145,17 @@ public class App {
         }
 
         try(SshClient client = SshClient.setUpDefaultClient()) {
+
+            KnownHostsServerKeyVerifier verifier = new DefaultKnownHostsServerKeyVerifier(new ServerKeyVerifier() {
+                @Override
+                public boolean verifyServerKey(ClientSession clientSession, SocketAddress remoteAddress, PublicKey serverKey) {
+                    /** unknown key is okay, but log */
+                    LOGGER.log(Level.WARNING, "Unknown host key for " + remoteAddress.toString());
+                    return true;
+                }
+            }, true);
+
+            client.setServerKeyVerifier(verifier);
             client.start();
 
             ConnectFuture cf = client.connect(username, sshHost, sshPort);
