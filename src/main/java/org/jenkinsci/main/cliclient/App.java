@@ -109,6 +109,11 @@ public class App {
             return -1;
         }
 
+        if (username == null) {
+            printUsage(Messages.CLI_NoUsername());
+            return -1;
+        }
+
         if (args.isEmpty())
             args = Arrays.asList("help"); // default to help
 
