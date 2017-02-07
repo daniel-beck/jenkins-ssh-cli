@@ -37,7 +37,7 @@ import java.util.logging.Logger;
 public class App {
     public static void main(String[] args) {
         try {
-            _main(args);
+            System.exit(_main(args));
         } catch (Exception ex) {
             ex.printStackTrace();
             System.exit(-1);
@@ -128,7 +128,7 @@ public class App {
         String endpointDescription = conn.getHeaderField("X-SSH-Endpoint");
 
         if (endpointDescription == null) {
-            System.err.println("No header 'X-SSH-Endpoint' returned by Jenkins");
+            System.err.println("Jenkins does not appear to be running an SSH server");
             return -1;
         }
 
